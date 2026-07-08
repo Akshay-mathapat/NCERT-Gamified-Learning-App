@@ -131,6 +131,7 @@ export default function TeacherDashboard({ user }) {
           {data.length === 0 && <p style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>No students registered yet.</p>}
         </div>
       </div>
+      </div>
     </div>
   );
 }
