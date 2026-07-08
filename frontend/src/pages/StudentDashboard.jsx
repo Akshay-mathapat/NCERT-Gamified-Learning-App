@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Star, Flame, Target, BookOpen } from 'lucide-react';
+import { Trophy, Star, Flame, Target, BookOpen, User } from 'lucide-react';
+import SpinWheel from '../components/SpinWheel';
+import AvatarShop from '../components/AvatarShop';
+import Achievements from '../components/Achievements';
 
 export default function StudentDashboard({ user }) {
   const [dashboardData, setDashboardData] = useState(null);
@@ -96,6 +99,23 @@ export default function StudentDashboard({ user }) {
             </div>
           </div>
 
+          <Achievements earnedBadgeIds={dashboardData.badges || []} />
+          
+          <AvatarShop 
+            user={dashboardData.user}
+            onAvatarUpdate={() => {
+              fetch(`http://localhost:3000/api/student-dashboard/${user.id}`)
+                .then(res => res.json())
+                .then(data => {
+                  setDashboardData(data);
+                  // Optionally sync back up to App.jsx user state
+                  const localUser = JSON.parse(localStorage.getItem('user'));
+                  localUser.avatar_url = data.user.avatar_url;
+                  localStorage.setItem('user', JSON.stringify(localUser));
+                });
+            }} 
+          />
+
           {/* Subjects */}
           <h2 style={{ marginTop: '1rem' }}><BookOpen style={{ display: 'inline', verticalAlign: 'middle' }} /> Learning Paths</h2>
           
@@ -177,6 +197,19 @@ export default function StudentDashboard({ user }) {
               ))}
             </div>
           </div>
+          
+          <div style={{ marginTop: '1.5rem' }}>
+            <SpinWheel 
+              user={dashboardData.user} 
+              onSpinComplete={() => {
+                // Refresh dashboard to get new coins/xp
+                fetch(`http://localhost:3000/api/student-dashboard/${user.id}`)
+                  .then(res => res.json())
+                  .then(data => setDashboardData(data));
+              }}
+            />
+          </div>
+
         </div>
 
       </div>

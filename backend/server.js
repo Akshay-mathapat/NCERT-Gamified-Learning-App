@@ -68,13 +68,16 @@ app.get('/api/activities', (req, res) => {
 // Get Student Dashboard Info
 app.get('/api/student-dashboard/:id', (req, res) => {
   const userId = req.params.id;
-  db.get(`SELECT id, username, name, xp, coins, streak, current_level FROM users WHERE id = ?`, [userId], (err, user) => {
+  db.get(`SELECT id, username, name, xp, coins, streak, current_level, avatar_url, last_spin_date FROM users WHERE id = ?`, [userId], (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
     
     db.all(`SELECT p.activity_id, p.score, p.completed_at, a.subject, a.topic, a.title 
             FROM progress p JOIN activities a ON p.activity_id = a.id 
             WHERE p.user_id = ?`, [userId], (err, progress) => {
-      res.json({ user, progress });
+              
+      db.all(`SELECT badge_id FROM user_badges WHERE user_id = ?`, [userId], (err, badges) => {
+        res.json({ user, progress, badges: badges.map(b => b.badge_id) });
+      });
     });
   });
 });
@@ -103,9 +106,60 @@ app.post('/api/submit-activity', (req, res) => {
         db.run(`UPDATE users SET xp = ?, coins = ?, current_level = ? WHERE id = ?`,
           [newXp, newCoins, newLevel, userId], (err) => {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, xpEarned, coinsEarned, levelUp: newLevel > user.current_level, newLevel });
+            
+            // Check for badges
+            let newBadges = [];
+            const checkAndAwardBadge = (badgeId) => {
+              db.get(`SELECT id FROM user_badges WHERE user_id = ? AND badge_id = ?`, [userId, badgeId], (err, row) => {
+                if (!row) {
+                  db.run(`INSERT INTO user_badges (user_id, badge_id, earned_at) VALUES (?, ?, ?)`, [userId, badgeId, date]);
+                  newBadges.push(badgeId);
+                }
+              });
+            };
+
+            if (score === 100) checkAndAwardBadge('perfect_score');
+            if (newLevel >= 2) checkAndAwardBadge('level_2_reached');
+
+            // Wait a small delay to ensure badge inserts resolve before responding
+            setTimeout(() => {
+              res.json({ success: true, xpEarned, coinsEarned, levelUp: newLevel > user.current_level, newLevel, newBadges });
+            }, 100);
         });
       });
+  });
+});
+
+// Spin Wheel
+app.post('/api/spin-wheel', (req, res) => {
+  const { userId, prizeType, prizeAmount } = req.body;
+  const today = new Date().toISOString().split('T')[0];
+
+  db.get(`SELECT xp, coins, last_spin_date FROM users WHERE id = ?`, [userId], (err, user) => {
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.last_spin_date === today) return res.status(400).json({ error: 'Already spun today' });
+
+    const newXp = prizeType === 'xp' ? user.xp + prizeAmount : user.xp;
+    const newCoins = prizeType === 'coins' ? user.coins + prizeAmount : user.coins;
+
+    db.run(`UPDATE users SET xp = ?, coins = ?, last_spin_date = ? WHERE id = ?`, [newXp, newCoins, today, userId], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, newXp, newCoins });
+    });
+  });
+});
+
+// Buy Avatar
+app.post('/api/buy-avatar', (req, res) => {
+  const { userId, avatarUrl, cost } = req.body;
+  db.get(`SELECT coins FROM users WHERE id = ?`, [userId], (err, user) => {
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.coins < cost) return res.status(400).json({ error: 'Not enough coins' });
+
+    db.run(`UPDATE users SET coins = ?, avatar_url = ? WHERE id = ?`, [user.coins - cost, avatarUrl, userId], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, newCoins: user.coins - cost, avatarUrl });
+    });
   });
 });
 

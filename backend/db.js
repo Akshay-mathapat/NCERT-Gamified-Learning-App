@@ -20,7 +20,18 @@ const db = new sqlite3.Database(dbPath, (err) => {
         coins INTEGER DEFAULT 0,
         streak INTEGER DEFAULT 0,
         last_login_date TEXT,
-        current_level INTEGER DEFAULT 1
+        current_level INTEGER DEFAULT 1,
+        avatar_url TEXT DEFAULT '/avatars/default.png',
+        last_spin_date TEXT
+      )`);
+
+      // Create Badges Table
+      db.run(`CREATE TABLE IF NOT EXISTS user_badges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        badge_id TEXT,
+        earned_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )`);
 
       // Create Activities Table
