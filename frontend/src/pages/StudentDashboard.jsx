@@ -4,6 +4,8 @@ import { Trophy, Star, Flame, Target, BookOpen, User } from 'lucide-react';
 import SpinWheel from '../components/SpinWheel';
 import AvatarShop from '../components/AvatarShop';
 import Achievements from '../components/Achievements';
+import DailyChallengeCard from '../components/DailyChallengeCard';
+import StreakCalendar from '../components/StreakCalendar';
 
 export default function StudentDashboard({ user }) {
   const [dashboardData, setDashboardData] = useState(null);
@@ -90,14 +92,26 @@ export default function StudentDashboard({ user }) {
             </div>
           </div>
 
-          {/* Level Progress */}
-          <div className="glass">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span>XP to next level</span>
-              <span>{dashboardData.user.xp % 200} / 200</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-6">
+            <div className="lg:col-span-1">
+              <DailyChallengeCard user={dashboardData.user} />
             </div>
-            <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${levelProgress}%` }}></div>
+            <div className="lg:col-span-2 space-y-6">
+              <StreakCalendar currentStreak={dashboardData.user.streak} />
+              
+              <div className="glass-panel rounded-3xl p-6 bg-slate-800/80 shadow-lg">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400"><Trophy size={32} /></div>
+                  <div>
+                    <p className="text-slate-400 font-bold">Current Level</p>
+                    <h3 className="text-2xl font-black">Level {dashboardData.user.current_level}</h3>
+                  </div>
+                </div>
+                <div className="w-full bg-slate-700 h-4 rounded-full overflow-hidden">
+                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${levelProgress}%` }}></div>
+                </div>
+                <p className="text-right text-sm mt-2 text-slate-400 font-bold">{dashboardData.user.xp % 200} / 200 XP to next level</p>
+              </div>
             </div>
           </div>
 
@@ -127,7 +141,7 @@ export default function StudentDashboard({ user }) {
           
           <div className="glass-panel">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <h3 className="text-xl font-bold" style={{ color: 'var(--math-color)' }}>🏰 Math Castle</h3>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--math-color)' }}>🏰 Math Castle & 👑 Treasure Island</h3>
               <div className="flex-1 max-w-xs bg-slate-700 rounded-full h-4 overflow-hidden">
                 <div 
                   className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out" 
@@ -159,7 +173,7 @@ export default function StudentDashboard({ user }) {
 
           <div className="glass-panel">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <h3 className="text-xl font-bold" style={{ color: 'var(--science-color)' }}>🏝️ Science Island</h3>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--science-color)' }}>🚀 Science Planet & 🌲 Forest Adventure</h3>
               <div className="flex-1 max-w-xs bg-slate-700 rounded-full h-4 overflow-hidden">
                 <div 
                   className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" 

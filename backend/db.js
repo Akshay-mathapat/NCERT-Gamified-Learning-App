@@ -55,6 +55,47 @@ const db = new sqlite3.Database(dbPath, (err) => {
         FOREIGN KEY (activity_id) REFERENCES activities(id)
       )`);
 
+      // Create Daily Challenges Table
+      db.run(`CREATE TABLE IF NOT EXISTS daily_challenges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        quiz_id TEXT,
+        puzzle_id TEXT,
+        reward_xp INTEGER,
+        reward_coins INTEGER
+      )`);
+
+      // Create Activity History Table
+      db.run(`CREATE TABLE IF NOT EXISTS activity_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        activity_id TEXT,
+        score INTEGER,
+        time_taken_seconds INTEGER,
+        date TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )`);
+
+      // Create Notifications Table
+      db.run(`CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        title TEXT,
+        message TEXT,
+        type TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at TEXT
+      )`);
+
+      // Create Spin History Table
+      db.run(`CREATE TABLE IF NOT EXISTS spin_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        prize_type TEXT,
+        prize_amount INTEGER,
+        spin_date TEXT
+      )`);
+
       // Seed Activities if empty
       db.get("SELECT COUNT(*) AS count FROM activities", (err, row) => {
         if (row && row.count === 0) {

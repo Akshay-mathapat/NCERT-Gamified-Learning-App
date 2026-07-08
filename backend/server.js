@@ -113,6 +113,11 @@ app.post('/api/submit-activity', (req, res) => {
   db.run(`INSERT INTO progress (user_id, activity_id, score, completed_at) VALUES (?, ?, ?, ?)`,
     [userId, activityId, score, date], function(err) {
       if (err) return res.status(500).json({ error: err.message });
+      
+      const timeTaken = req.body.timeTaken || 0;
+      const today = date.split('T')[0];
+      db.run(`INSERT INTO activity_history (user_id, activity_id, score, time_taken_seconds, date) VALUES (?, ?, ?, ?, ?)`,
+        [userId, activityId, score, timeTaken, today]);
 
       db.get(`SELECT xp, coins, current_level FROM users WHERE id = ?`, [userId], (err, user) => {
         if (!user) return res.status(404).json({ error: 'User not found' });
@@ -126,12 +131,19 @@ app.post('/api/submit-activity', (req, res) => {
           [newXp, newCoins, newLevel, userId], (err) => {
             if (err) return res.status(500).json({ error: err.message });
             
+            if (newLevel > user.current_level) {
+              db.run(`INSERT INTO notifications (user_id, title, message, type, created_at) VALUES (?, ?, ?, ?, ?)`,
+                [userId, 'Level Up!', `You reached Level ${newLevel}!`, 'level_up', today]);
+            }
+            
             // Check for badges
             let newBadges = [];
             const checkAndAwardBadge = (badgeId) => {
               db.get(`SELECT id FROM user_badges WHERE user_id = ? AND badge_id = ?`, [userId, badgeId], (err, row) => {
                 if (!row) {
                   db.run(`INSERT INTO user_badges (user_id, badge_id, earned_at) VALUES (?, ?, ?)`, [userId, badgeId, date]);
+                  db.run(`INSERT INTO notifications (user_id, title, message, type, created_at) VALUES (?, ?, ?, ?, ?)`,
+                    [userId, 'Badge Unlocked!', `You earned the ${badgeId} badge!`, 'badge', today]);
                   newBadges.push(badgeId);
                 }
               });
@@ -163,6 +175,10 @@ app.post('/api/spin-wheel', (req, res) => {
 
     db.run(`UPDATE users SET xp = ?, coins = ?, last_spin_date = ? WHERE id = ?`, [newXp, newCoins, today, userId], (err) => {
       if (err) return res.status(500).json({ error: err.message });
+      
+      db.run(`INSERT INTO spin_history (user_id, prize_type, prize_amount, spin_date) VALUES (?, ?, ?, ?)`,
+        [userId, prizeType, prizeAmount, today]);
+
       res.json({ success: true, newXp, newCoins });
     });
   });
@@ -223,6 +239,53 @@ app.get('/api/parent-dashboard/:childId', authenticateToken, (req, res) => {
     db.all(`SELECT p.score, p.completed_at, a.title FROM progress p JOIN activities a ON p.activity_id = a.id WHERE p.user_id = ? ORDER BY p.completed_at DESC LIMIT 10`, [childId], (err, activities) => {
       res.json({ child, activities });
     });
+  });
+});
+
+// Daily Challenge
+app.get('/api/dailyChallenge', authenticateToken, (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  db.get(`SELECT * FROM daily_challenges WHERE date = ?`, [today], (err, challenge) => {
+    if (challenge) return res.json(challenge);
+    
+    // Create new challenge
+    db.all(`SELECT id FROM activities WHERE type = 'quiz' LIMIT 1`, [], (err, quizzes) => {
+      db.all(`SELECT id FROM activities WHERE type = 'puzzle' LIMIT 1`, [], (err, puzzles) => {
+        const quizId = quizzes[0] ? quizzes[0].id : 'math-num-1';
+        const puzzleId = puzzles[0] ? puzzles[0].id : 'sci-for-2';
+        
+        db.run(`INSERT INTO daily_challenges (date, quiz_id, puzzle_id, reward_xp, reward_coins) VALUES (?, ?, ?, ?, ?)`,
+          [today, quizId, puzzleId, 100, 25], function(err) {
+            res.json({ id: this.lastID, date: today, quiz_id: quizId, puzzle_id: puzzleId, reward_xp: 100, reward_coins: 25 });
+        });
+      });
+    });
+  });
+});
+
+// Leaderboards
+app.get('/api/leaderboard/:type', authenticateToken, (req, res) => {
+  const type = req.params.type;
+  if (type === 'overall') {
+    db.all(`SELECT username, name, current_level, xp, avatar_url FROM users WHERE role = 'student' ORDER BY xp DESC LIMIT 10`, [], (err, users) => res.json({ leaderboard: users }));
+  } else if (type === 'daily') {
+    const today = new Date().toISOString().split('T')[0];
+    db.all(`
+      SELECT u.username, u.name, u.avatar_url, SUM(ah.score) as score 
+      FROM users u JOIN activity_history ah ON u.id = ah.user_id 
+      WHERE ah.date = ? AND u.role = 'student' 
+      GROUP BY u.id ORDER BY score DESC LIMIT 10
+    `, [today], (err, users) => res.json({ leaderboard: users }));
+  } else {
+    res.json({ leaderboard: [] });
+  }
+});
+
+// Teacher Analytics
+app.get('/api/analytics', authenticateToken, (req, res) => {
+  if (req.user.role !== 'teacher' && req.user.role !== 'admin') return res.status(403).json({ error: 'Unauthorized' });
+  db.all(`SELECT u.name, u.xp, AVG(ah.score) as avg_accuracy FROM users u LEFT JOIN activity_history ah ON u.id = ah.user_id WHERE u.role = 'student' GROUP BY u.id`, [], (err, accuracyData) => {
+    res.json({ accuracyData });
   });
 });
 
