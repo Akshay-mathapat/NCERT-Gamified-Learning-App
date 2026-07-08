@@ -30,7 +30,10 @@ export default function ActivityView({ user }) {
     try {
       const res = await fetch('http://localhost:3000/api/submit-activity', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ userId: user.id, activityId: id, score })
       });
       const data = await res.json();

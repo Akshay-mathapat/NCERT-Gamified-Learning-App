@@ -4,6 +4,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import ParentDashboard from './pages/ParentDashboard';
 import ActivityView from './pages/ActivityView';
 import { LogOut } from 'lucide-react';
 
@@ -22,16 +24,16 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    if (userData.role === 'teacher') {
-      navigate('/teacher');
-    } else {
-      navigate('/dashboard');
-    }
+    if (userData.role === 'teacher') navigate('/teacher');
+    else if (userData.role === 'admin') navigate('/admin');
+    else if (userData.role === 'parent') navigate('/parent');
+    else navigate('/dashboard');
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     navigate('/');
   };
 
@@ -59,6 +61,8 @@ function App() {
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/dashboard" element={<StudentDashboard user={user} />} />
         <Route path="/teacher" element={<TeacherDashboard user={user} />} />
+        <Route path="/admin" element={<AdminDashboard user={user} />} />
+        <Route path="/parent" element={<ParentDashboard user={user} />} />
         <Route path="/activity/:id" element={<ActivityView user={user} />} />
       </Routes>
     </>

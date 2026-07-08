@@ -31,7 +31,9 @@ export default function TeacherDashboard({ user }) {
       return;
     }
 
-    fetch('http://localhost:3000/api/teacher-dashboard')
+    fetch('http://localhost:3000/api/teacher-dashboard', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
       .then(res => res.json())
       .then(d => setData(d.students));
   }, [user, navigate]);

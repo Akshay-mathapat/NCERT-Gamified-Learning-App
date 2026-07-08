@@ -31,7 +31,10 @@ export default function Login({ onLogin }) {
           setIsLogin(true);
           setError('Registration successful! Please login.');
         } else {
-          onLogin(data);
+          const userObj = data.user || data;
+          localStorage.setItem('user', JSON.stringify(userObj));
+          if (data.token) localStorage.setItem('token', data.token);
+          onLogin(userObj);
         }
       }
     } catch (err) {
@@ -69,6 +72,8 @@ export default function Login({ onLogin }) {
               <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} className="w-full p-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-indigo-500 focus:outline-none transition-colors">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
+                <option value="parent">Parent</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           )}

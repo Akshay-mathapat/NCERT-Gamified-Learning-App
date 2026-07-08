@@ -2,12 +2,28 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./db');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = 'hackathon-super-secret-key-12345';
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const PORT = 3000;
+
+// JWT Verification Middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) return res.status(401).json({ error: 'Access denied' });
+  
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+};
 
 // Register
 app.post('/api/register', (req, res) => {
@@ -18,7 +34,8 @@ app.post('/api/register', (req, res) => {
   db.run(`INSERT INTO users (username, password, role, name, last_login_date) VALUES (?, ?, ?, ?, ?)`, 
     [username, hash, role || 'student', name, date], function(err) {
       if (err) return res.status(400).json({ error: 'Username may already exist.' });
-      res.json({ id: this.lastID, username, role, name });
+      const token = jwt.sign({ id: this.lastID, role }, JWT_SECRET, { expiresIn: '24h' });
+      res.json({ id: this.lastID, username, role, name, token });
   });
 });
 
@@ -30,6 +47,8 @@ app.post('/api/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+
     // Streak calculation
     const today = new Date().toISOString().split('T')[0];
     let newStreak = user.streak;
@@ -53,7 +72,7 @@ app.post('/api/login', (req, res) => {
 
     const { password: _, ...userData } = user;
     userData.streak = newStreak;
-    res.json(userData);
+    res.json({ ...userData, token });
   });
 });
 
@@ -66,7 +85,7 @@ app.get('/api/activities', (req, res) => {
 });
 
 // Get Student Dashboard Info
-app.get('/api/student-dashboard/:id', (req, res) => {
+app.get('/api/student-dashboard/:id', authenticateToken, (req, res) => {
   const userId = req.params.id;
   db.get(`SELECT id, username, name, xp, coins, streak, current_level, avatar_url, last_spin_date FROM users WHERE id = ?`, [userId], (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -172,7 +191,8 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 // Teacher Dashboard
-app.get('/api/teacher-dashboard', (req, res) => {
+app.get('/api/teacher-dashboard', authenticateToken, (req, res) => {
+  if (req.user.role !== 'teacher' && req.user.role !== 'admin') return res.status(403).json({ error: 'Unauthorized' });
   db.all(`SELECT u.id, u.name, u.xp, u.current_level, 
           COUNT(p.id) as completed_activities,
           AVG(p.score) as avg_score
@@ -182,6 +202,27 @@ app.get('/api/teacher-dashboard', (req, res) => {
           GROUP BY u.id`, [], (err, students) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ students });
+  });
+});
+
+// Admin Dashboard
+app.get('/api/admin-dashboard', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Unauthorized' });
+  db.all(`SELECT id, username, name, role, xp, coins FROM users`, [], (err, users) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ users });
+  });
+});
+
+// Parent Dashboard
+app.get('/api/parent-dashboard/:childId', authenticateToken, (req, res) => {
+  if (req.user.role !== 'parent') return res.status(403).json({ error: 'Unauthorized' });
+  const childId = req.params.childId;
+  db.get(`SELECT id, name, xp, coins, streak, current_level FROM users WHERE id = ? AND role = 'student'`, [childId], (err, child) => {
+    if (err || !child) return res.status(404).json({ error: 'Child not found' });
+    db.all(`SELECT p.score, p.completed_at, a.title FROM progress p JOIN activities a ON p.activity_id = a.id WHERE p.user_id = ? ORDER BY p.completed_at DESC LIMIT 10`, [childId], (err, activities) => {
+      res.json({ child, activities });
+    });
   });
 });
 

@@ -18,7 +18,9 @@ export default function StudentDashboard({ user }) {
     }
 
     // Fetch dashboard data
-    fetch(`http://localhost:3000/api/student-dashboard/${user.id}`)
+    fetch(`http://localhost:3000/api/student-dashboard/${user.id}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
       .then(res => res.json())
       .then(data => setDashboardData(data));
 
@@ -104,7 +106,9 @@ export default function StudentDashboard({ user }) {
           <AvatarShop 
             user={dashboardData.user}
             onAvatarUpdate={() => {
-              fetch(`http://localhost:3000/api/student-dashboard/${user.id}`)
+              fetch(`http://localhost:3000/api/student-dashboard/${user.id}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+              })
                 .then(res => res.json())
                 .then(data => {
                   setDashboardData(data);
@@ -205,7 +209,9 @@ export default function StudentDashboard({ user }) {
               user={dashboardData.user} 
               onSpinComplete={() => {
                 // Refresh dashboard to get new coins/xp
-                fetch(`http://localhost:3000/api/student-dashboard/${user.id}`)
+                fetch(`http://localhost:3000/api/student-dashboard/${user.id}`, {
+                  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                })
                   .then(res => res.json())
                   .then(data => setDashboardData(data));
               }}
