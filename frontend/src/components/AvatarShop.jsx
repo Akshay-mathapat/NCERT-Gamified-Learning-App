@@ -53,7 +53,7 @@ export default function AvatarShop({ user, onAvatarUpdate }) {
               <div style={{ color: 'gold', marginBottom: '0.5rem' }}>{av.cost} Coins</div>
               
               <button 
-                className={\`btn \${isOwned ? 'btn-secondary' : 'btn-primary'}\`} 
+                className={`btn ${isOwned ? 'btn-secondary' : 'btn-primary'}`} 
                 style={{ width: '100%', padding: '0.25rem', fontSize: '0.875rem' }}
                 onClick={() => handleBuy(av)}
                 disabled={isOwned}
