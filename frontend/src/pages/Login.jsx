@@ -40,47 +40,47 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <div className="glass animate-slide-in" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '2rem' }} className="gradient-text">
+    <div className="min-h-screen bg-slate-900 flex justify-center items-center p-6">
+      <div className="glass-panel w-full max-w-md p-8 rounded-2xl shadow-2xl border border-white/10 bg-slate-800/80 backdrop-blur-md">
+        <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
           {isLogin ? 'Welcome Back!' : 'Join the Adventure'}
         </h2>
         
-        {error && <div style={{ padding: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', borderRadius: '0.5rem', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+        {error && <div className="p-3 bg-red-500/20 text-red-300 rounded-lg mb-6 text-center border border-red-500/30">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
-            <div className="input-group">
-              <label>Full Name</label>
-              <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <div>
+              <label className="block text-slate-400 font-semibold mb-2">Full Name</label>
+              <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-indigo-500 focus:outline-none transition-colors" />
             </div>
           )}
-          <div className="input-group">
-            <label>Username</label>
-            <input type="text" required value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} />
+          <div>
+            <label className="block text-slate-400 font-semibold mb-2">Username</label>
+            <input type="text" required value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full p-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-indigo-500 focus:outline-none transition-colors" />
           </div>
-          <div className="input-group">
-            <label>Password</label>
-            <input type="password" required value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+          <div>
+            <label className="block text-slate-400 font-semibold mb-2">Password</label>
+            <input type="password" required value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full p-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-indigo-500 focus:outline-none transition-colors" />
           </div>
           {!isLogin && (
-            <div className="input-group">
-              <label>Role</label>
-              <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})}>
+            <div>
+              <label className="block text-slate-400 font-semibold mb-2">Role</label>
+              <select value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})} className="w-full p-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-indigo-500 focus:outline-none transition-colors">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
               </select>
             </div>
           )}
           
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}>
+          <button type="submit" className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors mt-6 shadow-[0_4px_14px_0_rgba(99,102,241,0.39)]">
             {isLogin ? 'Start Learning' : 'Create Account'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-muted)' }}>
+        <p className="text-center mt-6 text-slate-400">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }}>
+          <button onClick={() => setIsLogin(!isLogin)} className="text-indigo-400 font-bold hover:text-indigo-300">
             {isLogin ? 'Sign up' : 'Log in'}
           </button>
         </p>

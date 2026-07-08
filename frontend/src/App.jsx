@@ -1,5 +1,6 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -9,6 +10,7 @@ import { LogOut } from 'lucide-react';
 function App() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -33,9 +35,11 @@ function App() {
     navigate('/');
   };
 
+  const isLandingPage = location.pathname === '/';
+
   return (
     <>
-      {user && (
+      {user && !isLandingPage && (
         <nav style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--surface-border)' }}>
           <h2 className="gradient-text">NCERT Gamified</h2>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -51,7 +55,8 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/" element={<Login onLogin={handleLogin} />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/dashboard" element={<StudentDashboard user={user} />} />
         <Route path="/teacher" element={<TeacherDashboard user={user} />} />
         <Route path="/activity/:id" element={<ActivityView user={user} />} />
