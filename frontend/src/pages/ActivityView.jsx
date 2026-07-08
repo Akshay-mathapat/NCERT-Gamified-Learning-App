@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Award, Coins } from 'lucide-react';
+import Confetti from 'react-confetti';
 import Quiz from '../components/activities/Quiz';
 import Sorter from '../components/activities/Sorter';
 import Match from '../components/activities/Match';
@@ -12,6 +13,7 @@ export default function ActivityView({ user }) {
   const [activity, setActivity] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [rewardData, setRewardData] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -39,7 +41,7 @@ export default function ActivityView({ user }) {
       const data = await res.json();
       setRewardData({ ...data, score });
       setShowResult(true);
-      // Update local user state if needed, though they will refetch on dashboard load
+      if (score >= 80) setShowConfetti(true);
     } catch (err) {
       console.error('Failed to submit score');
     }
@@ -72,6 +74,7 @@ export default function ActivityView({ user }) {
 
   return (
     <div className="container animate-slide-in">
+      {showConfetti && <Confetti recycle={false} numberOfPieces={500} gravity={0.15} />}
       <button className="btn" style={{ background: 'transparent', color: 'var(--text-muted)', marginBottom: '1rem', padding: 0 }} onClick={() => navigate('/dashboard')}>
         <ArrowLeft size={20} /> Back to Dashboard
       </button>

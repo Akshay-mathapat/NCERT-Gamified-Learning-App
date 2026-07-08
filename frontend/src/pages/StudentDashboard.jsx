@@ -126,9 +126,15 @@ export default function StudentDashboard({ user }) {
           </h2>
           
           <div className="glass-panel">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h3 className="text-xl font-bold" style={{ color: 'var(--math-color)' }}>🏰 Math Castle</h3>
-              <span className="badge math">{getProgressPercentage(mathsActivities)}% Complete</span>
+              <div className="flex-1 max-w-xs bg-slate-700 rounded-full h-4 overflow-hidden">
+                <div 
+                  className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${getProgressPercentage(mathsActivities)}%` }}
+                ></div>
+              </div>
+              <span className="text-indigo-400 font-bold whitespace-nowrap">{getProgressPercentage(mathsActivities)}% Complete</span>
             </div>
             <div className="grid grid-cols-2">
               {mathsActivities.map(activity => {
@@ -152,9 +158,15 @@ export default function StudentDashboard({ user }) {
           </div>
 
           <div className="glass-panel">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h3 className="text-xl font-bold" style={{ color: 'var(--science-color)' }}>🏝️ Science Island</h3>
-              <span className="badge science">{getProgressPercentage(scienceActivities)}% Complete</span>
+              <div className="flex-1 max-w-xs bg-slate-700 rounded-full h-4 overflow-hidden">
+                <div 
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${getProgressPercentage(scienceActivities)}%` }}
+                ></div>
+              </div>
+              <span className="text-emerald-400 font-bold whitespace-nowrap">{getProgressPercentage(scienceActivities)}% Complete</span>
             </div>
             <div className="grid grid-cols-2">
               {scienceActivities.map(activity => {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Mock rule-based data generator based on activity ID
 const getQuizConfig = (id) => {
@@ -40,50 +41,49 @@ export default function Quiz({ activity, onComplete }) {
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+    <div className="w-full">
+      <div className="flex justify-between text-slate-400 font-semibold mb-6 text-sm">
         <span>Question {currentIdx + 1} of {config.questions.length}</span>
         <span>Score: {score}</span>
       </div>
-      
-      <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>{question.q}</h3>
 
-      <div className="grid grid-cols-2">
-        {question.options.map((opt, idx) => {
-          let bg = 'var(--surface)';
-          let border = '1px solid var(--surface-border)';
-          if (selected !== null) {
-            if (idx === question.answer) {
-              bg = 'rgba(16, 185, 129, 0.2)';
-              border = '1px solid var(--success)';
-            } else if (idx === selected) {
-              bg = 'rgba(239, 68, 68, 0.2)';
-              border = '1px solid var(--danger)';
-            }
-          }
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={currentIdx}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8"
+        >
+          <h3 className="text-2xl font-bold mb-8 text-white text-center">{question.q}</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {question.options.map((opt, idx) => {
+              let bgClass = 'bg-slate-800/50 border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/50 text-white';
+              
+              if (selected !== null) {
+                if (idx === question.answer) {
+                  bgClass = 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400';
+                } else if (idx === selected) {
+                  bgClass = 'bg-red-500/20 border-red-500/50 text-red-400';
+                }
+              }
 
-          return (
-            <button 
-              key={idx}
-              className="btn"
-              style={{
-                background: bg,
-                border: border,
-                color: 'white',
-                padding: '1.5rem',
-                justifyContent: 'center',
-                fontSize: '1.25rem',
-                transition: 'all 0.2s',
-                transform: selected === null ? 'none' : 'scale(0.98)'
-              }}
-              onClick={() => handleSelect(idx)}
-              disabled={selected !== null}
-            >
-              {opt}
-            </button>
-          )
-        })}
-      </div>
+              return (
+                <button 
+                  key={idx}
+                  className={`p-4 rounded-xl border text-lg text-left transition-all ${bgClass} ${selected !== null ? 'opacity-80' : ''}`}
+                  onClick={() => handleSelect(idx)}
+                  disabled={selected !== null}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
