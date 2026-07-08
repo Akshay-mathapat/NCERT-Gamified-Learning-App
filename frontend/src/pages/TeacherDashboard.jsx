@@ -1,6 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Activity, BarChart2 } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function TeacherDashboard({ user }) {
   const [data, setData] = useState(null);
@@ -22,6 +41,31 @@ export default function TeacherDashboard({ user }) {
   const totalStudents = data.length;
   const avgXP = data.reduce((acc, curr) => acc + curr.xp, 0) / (totalStudents || 1);
   const totalActivitiesCompleted = data.reduce((acc, curr) => acc + curr.completed_activities, 0);
+
+  const chartData = {
+    labels: data.map(s => s.name),
+    datasets: [
+      {
+        label: 'Total XP Earned',
+        data: data.map(s => s.xp),
+        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+        borderColor: 'rgb(99, 102, 241)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'Student Performance Overview', color: '#fff' },
+    },
+    scales: {
+      y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+      x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+    }
+  };
 
   return (
     <div className="container animate-slide-in">
@@ -52,9 +96,15 @@ export default function TeacherDashboard({ user }) {
         </div>
       </div>
 
-      {/* Student Table */}
-      <div className="glass-panel">
-        <h3 style={{ marginBottom: '1rem' }}>Student Progress Tracking</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="glass-panel">
+          <h3 style={{ marginBottom: '1rem' }}>XP Distribution</h3>
+          <Bar data={chartData} options={chartOptions} />
+        </div>
+        
+        {/* Student Table */}
+        <div className="glass-panel overflow-y-auto" style={{ maxHeight: '400px' }}>
+          <h3 style={{ marginBottom: '1rem' }}>Class Roster & Details</h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>

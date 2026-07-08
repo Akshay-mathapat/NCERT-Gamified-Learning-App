@@ -117,11 +117,13 @@ export default function StudentDashboard({ user }) {
           />
 
           {/* Subjects */}
-          <h2 style={{ marginTop: '1rem' }}><BookOpen style={{ display: 'inline', verticalAlign: 'middle' }} /> Learning Paths</h2>
+          <h2 style={{ marginTop: '1rem' }} className="flex items-center gap-2 text-2xl font-bold mb-4">
+            <BookOpen className="text-indigo-400" /> Adventure Map
+          </h2>
           
           <div className="glass-panel">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ color: 'var(--math-color)' }}>Mathematics</h3>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--math-color)' }}>🏰 Math Castle</h3>
               <span className="badge math">{getProgressPercentage(mathsActivities)}% Complete</span>
             </div>
             <div className="grid grid-cols-2">
@@ -147,7 +149,7 @@ export default function StudentDashboard({ user }) {
 
           <div className="glass-panel">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ color: 'var(--science-color)' }}>Science</h3>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--science-color)' }}>🏝️ Science Island</h3>
               <span className="badge science">{getProgressPercentage(scienceActivities)}% Complete</span>
             </div>
             <div className="grid grid-cols-2">
